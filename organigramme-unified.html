@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organigramme Détaillé - GST Laâyoune</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.0.7/countUp.min.js"></script>
+
+<style>
+  :root {
+    --bg-base: #020617;
+    --bg-elevated: #0f172a;
+    --bg-glass: rgba(15, 23, 42, 0.8);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    
+    --primary-cyan: #06b6d4;
+    --primary-teal: #14b8a6;
+    --primary-blue: #3b82f6;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.15);
+    
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    
+    --transition: all 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, summary { font-family: 'Outfit', sans-serif; }
+
+  /* Navigation */
+  nav {
+    background: rgba(2, 6, 23, 0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-glass);
+    padding: 1.25rem 0;
+    position: sticky; top: 0; z-index: 1000;
+  }
+  .container { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
+  .nav-content { display: flex; justify-content: space-between; align-items: center; }
+  .nav-logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.75rem; font-weight: 800;
+    color: var(--text-primary); text-decoration: none;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .nav-logo span {
+    background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
+  .nav-link {
+    color: var(--text-secondary); text-decoration: none; font-weight: 500; font-size: 0.95rem; 
+    padding: 0.5rem 1rem; border-radius: var(--radius-sm); transition: var(--transition);
+  }
+  .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+  .nav-link.active { color: var(--text-primary); background: rgba(6, 182, 212, 0.1); }
+  
+  .mobile-menu-toggle { display: none; background: none; border: none; color: var(--primary-cyan); font-size: 1.5rem; cursor: pointer; }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .mobile-menu-toggle { display: block; }
+  }
+
+  /* Page Header */
+  .page-header {
+    background: linear-gradient(45deg, var(--bg-elevated) 0%, var(--bg-base) 100%);
+    border-bottom: 1px solid var(--border-glass);
+    padding: 3rem 0; text-align: center;
+  }
+  .page-header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .page-header h1 span {
+    background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .page-header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+  /* Layout */
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+  }
+  @media (max-width: 1000px) {
+    .layout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Glass Card */
+  .glass-card {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  .card-title {
+    font-size: 1.5rem; font-weight: 700; color: var(--primary-cyan);
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+    border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;
+  }
+
+  /* Full Vertical Tree */
+  .v-tree {
+    color: var(--text-primary);
+  }
+  
+  .v-tree details {
+    margin-bottom: 0.5rem;
+  }
+  
+  .v-tree summary {
+    list-style: none;
+    cursor: pointer;
+    background: rgba(15, 23, 42, 1);
+    border: 1px solid var(--border-glass);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 1.1rem; font-weight: 600;
+    transition: var(--transition);
+  }
+  .v-tree summary:hover {
+    border-color: var(--primary-cyan);
+    background: rgba(6, 182, 212, 0.05);
+  }
+  .v-tree summary::-webkit-details-marker { display: none; }
+  
+  .v-tree summary i.chevron {
+    margin-left: auto; transition: transform 0.3s ease; color: var(--text-muted);
+  }
+  .v-tree details[open] > summary i.chevron {
+    transform: rotate(180deg); color: var(--primary-cyan);
+  }
+
+  .v-tree ul {
+    list-style-type: none;
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid rgba(6, 182, 212, 0.3);
+  }
+
+  .v-tree li {
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+
+  .v-tree li::before {
+    content: '';
+    position: absolute;
+    top: 20px; left: -1.5rem;
+    width: 1.25rem;
+    border-top: 2px solid rgba(6, 182, 212, 0.3);
+  }
+  
+  .v-tree li:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Node styling */
+  .node-type-1 { color: var(--primary-cyan); font-size: 1.3rem; }
+  .node-type-2 { color: var(--primary-blue); font-size: 1.3rem; }
+  .node-type-3 { color: var(--accent-emerald); font-size: 1.3rem; }
+  .node-type-4 { color: var(--accent-amber); font-size: 1.3rem; }
+
+  /* Subnodes levels 3 and 4 */
+  summary.sub-div {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem; font-weight: 500; font-family: 'Inter';
+    display: flex; align-items: center; gap: 0.5rem;
+    transition: var(--transition);
+  }
+  summary.sub-div:hover {
+    background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1);
+  }
+  summary.sub-div i.chevron { margin-left: auto; }
+  
+  .sub-div-text {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem; font-weight: 500; font-family: 'Inter';
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  
+  .service-item {
+    font-size: 0.85rem; padding: 0.35rem 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    color: var(--text-secondary);
+  }
+  .service-item i { font-size: 0.5rem; color: var(--primary-teal); }
+
+  /* Chart & Metrics container */
+  .chart-wrapper {
+    height: 350px;
+    position: relative;
+    margin-top: 1rem;
+  }
+  
+  .kpi-stat {
+    text-align: center; margin-bottom: 1.5rem;
+  }
+  .kpi-stat .value {
+    font-family: 'Outfit'; font-size: 3rem; font-weight: 700; color: var(--primary-cyan);
+    line-height: 1; text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+  .kpi-stat .label {
+    color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;
+  }
+
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-content">
+    <a href="gst-laayoune-unified.html" class="nav-logo">
+      <i class="fas fa-stethoscope" style="color: var(--primary-cyan);"></i>
+      <span>GST Laâyoune</span>
+    </a>
+    <button class="mobile-menu-toggle" style="display: none;">
+      <i class="fas fa-bars"></i>
+    </button>
+    <ul class="nav-links">
+      <li><a href="gst-laayoune-unified.html" class="nav-link">Accueil</a></li>
+      <li><a href="dg-unified.html" class="nav-link">Direction</a></li>
+      <li><a href="#" class="nav-link active">Organigramme</a></li>
+      <li><a href="previsions-unified.html" class="nav-link">Prévisions</a></li>
+      <li><a href="carte-unified.html" class="nav-link">Carte Interactive</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="container">
+    <h1>Structure & <span>Hiérarchie Détaillée</span></h1>
+    <p>Explorez l'organigramme complet des Directions, Divisions et Services du Groupement Sanitaire Territorial</p>
+  </div>
+</header>
+
+<div class="container layout-grid">
+  
+  <!-- Full Tree View -->
+  <div class="glass-card">
+    <div class="card-title">
+      <i class="fas fa-sitemap"></i> Déploiement Administratif et Sanitaire
+      <div style="margin-left: auto;">
+        <button id="expandAll" style="background:none; border:1px solid var(--border-glass); color:var(--text-secondary); padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;">Tout déplier</button>
+      </div>
+    </div>
+    
+    <div class="v-tree">
+      
+      <!-- 1. GOUVERNANCE -->
+      <details open>
+        <summary>
+          <i class="fas fa-crown node-type-1"></i> Gouvernance
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <ul>
+          <li>
+            <details open>
+              <summary class="sub-div"><i class="fas fa-users" style="color: var(--text-muted)"></i> Conseil d'Administration <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Présidence : Chef du Gouvernement</div></li>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Wali de la Région</div></li>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Président de la Région</div></li>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Directeur Général du GST</div></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details open>
+              <summary class="sub-div"><i class="fas fa-user-tie" style="color: var(--text-muted)"></i> Direction Générale <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Directeur Général : M. Brahim El Ahmadi</div></li>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Cabinet du Directeur Général</div></li>
+                <li><div class="service-item"><i class="fas fa-circle"></i> Secrétariat Général</div></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </details>
+
+      <!-- 2. POLE PILOTAGE -->
+      <details>
+        <summary>
+          <i class="fas fa-cogs node-type-2"></i> Pôle Pilotage
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <ul>
+          <li>
+            <details>
+              <summary><i class="fas fa-laptop" style="color: var(--text-muted)"></i> Direction Systèmes d'Information <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-code"></i> Division Ingénierie Logicielle <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Développement Logiciel</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Intégration et API</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-database"></i> Division Production de l'Information <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Bases de Données</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Analyse Décisionnelle (BI)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-server"></i> Division Infrastructures et Sécurité <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Réseaux et Datacenter</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Cybersécurité Sanitaire</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-chart-line" style="color: var(--text-muted)"></i> Direction Stratégie & Santé Publique <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-chess-knight"></i> Division Stratégie <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Planification Stratégique</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Partenariats</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-heartbeat"></i> Division Santé Publique <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Épidémiologie</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Prévention et Promotion</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-search-plus"></i> Division Veille Sanitaire <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Gestion des Alertes</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Traçabilité Sanitaire</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-graduation-cap" style="color: var(--text-muted)"></i> Direction Formation, Recherche & Innov. <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-book"></i> Division Formation (Lien FMPL) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Formation Initiale</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Gestion des Stages Internationaux</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-microscope"></i> Division Recherche Clinique <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Essais Cliniques</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Protocoles d'Étude</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-satellite-dish"></i> Division Innovation et Télémédecine <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Solutions Digitales</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Télésanté</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </details>
+
+      <!-- 3. BRANCHE ADMINISTRATIVE -->
+      <details>
+        <summary>
+          <i class="fas fa-building node-type-4"></i> Branche Administrative
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <ul>
+          <li>
+            <details>
+              <summary><i class="fas fa-users-cog" style="color: var(--text-muted)"></i> Direction Capital Humain <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-id-card"></i> Div. Gestion du Personnel (1 755 agents) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Recrutement et Mobilité</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Rémunération</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-chalkboard-teacher"></i> Div. Formation Continue <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Ingénierie Pédagogique</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Évaluation des Compétences</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-hands-helping"></i> Div. Affaires Sociales <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Action Sociale pour le Personnel</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Santé et Sécurité au Travail</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-euro-sign" style="color: var(--text-muted)"></i> Direction Affaires Financières <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-file-invoice-dollar"></i> Div. Budget et Comptabilité <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Budget Sanitaire</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Comptabilité Centralisée</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-cash-register"></i> Div. Facturation et Recouvrement <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Recouvrement Mutuelles</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Contrôle des Frais</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-chart-pie"></i> Div. Contrôle de Gestion <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Audit Interne</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Analyse et Tableaux de Bord</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-shopping-cart" style="color: var(--text-muted)"></i> Direction Achats & Logistique <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-file-contract"></i> Div. Marchés Publics <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Appels d'Offres</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Suivi des Contrats</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-box-open"></i> Div. Approvisionnement <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Gestion des Stocks Médicaux</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Logistique Matérielle</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-truck"></i> Div. Transport et Logistique (43 Ambulances) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Exploitation Parc Auto</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Maintenance Véhicules</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-tools" style="color: var(--text-muted)"></i> Direction Patrimoine & Maintenance <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-hard-hat"></i> Div. Maintenance Bâtiments <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Génie Civil et Architectural</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Réseaux et Fluides (Oxygène, etc)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-heartbeat"></i> Div. Maintenance Biomédicale (184 équip.) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Maintenance Préventive</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Suivi Équipements Lourds (Scanners)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-city"></i> Div. Gestion Patrimoniale <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Aménagement Foncier</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Inventaire Immobilier</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </details>
+
+      <!-- 4. BRANCHE SANITAIRE -->
+      <details>
+        <summary>
+          <i class="fas fa-hospital node-type-3"></i> Branche Sanitaire
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <ul>
+          <li>
+            <details>
+              <summary><i class="fas fa-hospital-alt" style="color: var(--text-muted)"></i> Niveau Tertiaire (CHU Laâyoune) <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li><div class="sub-div-text"><i class="fas fa-clinic-medical"></i> Direction du CHU Laâyoune</div></li>
+                <li><div class="sub-div-text"><i class="fas fa-ribbon"></i> Centre Régional d'Oncologie (22 lits)</div></li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-procedures"></i> Pôles Médicaux et Chirurgicaux <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Département de Chirurgie Viscérale</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Département de Traumatologie</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Département Réanimation et Soins Intensifs</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-baby-carriage"></i> Pôle Mère-Enfant <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Gynécologie Obsétrique</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Service Pédiatrie et Néonatalogie</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-ambulance" style="color: var(--text-muted)"></i> Niveau Secondaire (Espaces Sanitaires) <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-map-marker-alt"></i> Espace Sanitaire Laâyoune-Tarfaya (372 lits) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> H.R. Moulay El Hassan Ben El Mehdi (245 lits)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> H.P. Tarfaya (42 lits)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Hôpital My Hassan II de Spécialités (85 lits)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-map-marker-alt"></i> Espace Sanitaire Smara <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> H.P. Es-Smara (60 lits)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Services Urgences de Proximité</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-map-marker-alt"></i> Espace Sanitaire Boujdour <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> H.P. Boujdour (46 lits)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> Maternité Périphérique</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="fas fa-home" style="color: var(--text-muted)"></i> Niveau Primaire (44 Centres) <i class="fas fa-chevron-down chevron"></i></summary>
+              <ul>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-clinic-medical"></i> 24 Centres de Santé Urbains (CSU) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 2 Centres Urbains Niveau 2 (CSU-2)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 22 Centres Urbains Niveau 1 (CSU-1)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-leaf"></i> 20 Centres de Santé Ruraux (CSR) <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 1 Centre Rural Niveau 2 (CSR-2)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 7 Centres Ruraux Niveau 1 (CSR-1)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 12 Dispensaires Ruraux (DR)</div></li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details>
+                    <summary class="sub-div"><i class="fas fa-vial"></i> Structures spécialisées / Appui <i class="fas fa-chevron-down chevron"></i></summary>
+                    <ul>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> 2 Centres d'Hémodialyse (101 générateurs)</div></li>
+                      <li><div class="service-item"><i class="fas fa-circle"></i> CRSR & CDTMR</div></li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </details>
+
+    </div>
+  </div>
+
+  <!-- Panels & Charts on the Right -->
+  <div>
+    <div class="glass-card" style="margin-bottom: 2rem;">
+      <div class="kpi-stat">
+        <div class="value" id="kpi-rh">0</div>
+        <div class="label">Professionnels dévoués</div>
+      </div>
+      <div class="card-title" style="font-size: 1.1rem;"><i class="fas fa-chart-pie"></i> Répartition des Effectifs</div>
+      <div class="chart-wrapper">
+        <canvas id="rhChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="glass-card">
+      <div class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-network-wired"></i> Le Réseau de Soins</div>
+      <div class="sub-div-text" style="margin-bottom: 0.5rem;"><span style="color:var(--primary-cyan); font-weight:700; width:30px;">6</span> Hôpitaux Publics (478 lits)</div>
+      <div class="sub-div-text" style="margin-bottom: 0.5rem;"><span style="color:var(--accent-emerald); font-weight:700; width:30px;">44</span> Établissements ESSP</div>
+      <div class="sub-div-text"><span style="color:var(--accent-amber); font-weight:700; width:30px;">184</span> Équipements Lourds & Bioméd.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Expand All toggle
+  const expandBtn = document.getElementById('expandAll');
+  let expanded = false;
+  expandBtn.addEventListener('click', () => {
+    expanded = !expanded;
+    document.querySelectorAll('details').forEach(d => {
+      if (expanded) d.setAttribute('open', '');
+      else d.removeAttribute('open');
+    });
+    expandBtn.textContent = expanded ? 'Tout replier' : 'Tout déplier';
+  });
+
+  // Mobile menu toggle
+  const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  if (mobileMenuToggle && navLinks) {
+    mobileMenuToggle.addEventListener('click', () => {
+      navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '100%';
+      navLinks.style.left = '0';
+      navLinks.style.right = '0';
+      navLinks.style.background = 'var(--bg-elevated)';
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.padding = '1rem';
+      navLinks.style.zIndex = '999';
+    });
+  }
+
+  // CountUp logic
+  if (typeof countUp !== 'undefined') {
+    new countUp.CountUp('kpi-rh', 1755, { duration: 2.5, separator: ' ' }).start();
+  } else {
+    document.getElementById('kpi-rh').textContent = '1 755';
+  }
+
+  // Chart setup
+  const ctx = document.getElementById('rhChart').getContext('2d');
+  
+  Chart.register({
+    id: 'glowShadow',
+    beforeDraw: (chart) => {
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.shadowColor = 'rgba(6, 182, 212, 0.4)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 4;
+    }
+  });
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Infirmiers & Paramed.', 'Médecins', 'Corps Administratif', 'Corps Technique'],
+      datasets: [{
+        data: [1093, 159, 84, 419],
+        backgroundColor: [
+          '#14b8a6', // Teal
+          '#06b6d4', // Cyan
+          '#f59e0b', // Amber
+          '#64748b'  // Slate
+        ],
+        borderWidth: 0,
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 }, padding: 15, usePointStyle: true, boxWidth: 8 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          titleFont: { family: 'Outfit', size: 14 },
+          bodyFont: { family: 'Inter', size: 13 },
+          padding: 12,
+          cornerRadius: 8,
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1
+        }
+      }
+    }
+  });
+});
+</script>
+
+</body>
+</html>

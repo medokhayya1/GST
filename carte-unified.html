@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carte Interactive GST Laâyoune-Sakia El Hamra</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg-base: #020617;
+    --bg-elevated: #0f172a;
+    --bg-glass: rgba(15, 23, 42, 0.75);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    
+    --primary-cyan: #06b6d4;
+    --primary-teal: #14b8a6;
+    --primary-blue: #3b82f6;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition: all 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, .font-heading { font-family: 'Outfit', sans-serif; }
+
+  /* Navigation */
+  nav {
+    background: rgba(2, 6, 23, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-glass);
+    padding: 1.25rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+  .nav-content { display: flex; justify-content: space-between; align-items: center; }
+
+  .nav-logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .nav-logo span {
+    background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
+  .nav-link {
+    color: var(--text-secondary);
+    text-decoration: none; font-weight: 500; font-size: 0.95rem;
+    padding: 0.5rem 1rem; border-radius: var(--radius-sm);
+    transition: var(--transition); position: relative;
+  }
+
+  .nav-logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+
+  .nav-logo:hover {
+    transform: scale(1.05);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .nav-link::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 2px; background: linear-gradient(90deg, var(--primary-cyan), var(--primary-teal));
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+  .nav-link:hover::after, .nav-link.active::after { width: 80%; }
+  .nav-link.active { color: var(--text-primary); background: rgba(6, 182, 212, 0.1); }
+
+  .mobile-menu-toggle { display: none; background: none; border: none; color: var(--primary-cyan); font-size: 1.5rem; cursor: pointer; }
+  
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .mobile-menu-toggle { display: block; }
+  }
+
+  /* Page Header */
+  .page-header {
+    background: linear-gradient(45deg, var(--bg-elevated) 0%, var(--bg-base) 100%);
+    border-bottom: 1px solid var(--border-glass);
+    padding: 2.5rem 0; text-align: center; color: var(--text-primary);
+  }
+  .page-header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .page-header h1 span {
+    background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .page-header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+  /* Map layout */
+  .map-section {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    margin: 2rem 0;
+    height: calc(100vh - 220px);
+    min-height: 600px;
+  }
+
+  #map {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-glass);
+    z-index: 10;
+  }
+
+  #map::before {
+    content: 'Vue Territoriale';
+    position: absolute; top: 1rem; left: 4rem; z-index: 1000;
+    background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+    color: var(--text-primary); padding: 0.5rem 1rem; border-radius: var(--radius-sm);
+    font-size: 0.875rem; font-weight: 600; border: 1px solid var(--border-glass);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 220px);
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+  .sidebar h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem; font-weight: 700;
+    color: var(--primary-cyan);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  /* Filters */
+  .filter-section { margin-bottom: 2rem; }
+  .filter-title {
+    font-size: 0.75rem; color: var(--text-muted);
+    margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+  }
+
+  .filter-buttons { display: flex; flex-direction: column; gap: 0.5rem; }
+  .filter-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-glass);
+    color: var(--text-secondary);
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer; transition: var(--transition);
+    font-size: 0.9rem; text-align: left; font-weight: 500;
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+
+  .filter-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+  .filter-btn.active {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: var(--primary-cyan);
+    color: var(--text-primary);
+  }
+
+  /* Stats panel */
+  .stats-panel {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 1.25rem; margin-bottom: 1.5rem;
+  }
+
+  .stat-item {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.8rem; padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .stat-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+  .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
+  .stat-value { font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--primary-cyan); }
+
+  /* Facility list */
+  .facility-list { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+  .facility-list::-webkit-scrollbar { width: 4px; }
+  .facility-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+  .facility-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    padding: 1rem; margin-bottom: 0.8rem;
+    cursor: pointer; transition: var(--transition);
+  }
+
+  .facility-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(6, 182, 212, 0.3);
+    transform: translateX(4px);
+  }
+
+  .facility-name { font-size: 0.9rem; color: var(--text-primary); font-weight: 600; margin-bottom: 0.25rem; }
+  .facility-type { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .facility-beds { font-size: 0.8rem; color: var(--primary-teal); margin-top: 0.5rem; font-weight: 600; display: inline-block; background: rgba(20, 184, 166, 0.1); padding: 2px 6px; border-radius: 4px;}
+
+  /* Facility list */
+  .facility-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+  }
+
+  .facility-item {
+    background: var(--gray-light);
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .facility-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--primary-blue);
+    opacity: 0;
+    transition: var(--transition);
+    z-index: -1;
+  }
+
+  .facility-item:hover::before {
+    opacity: 0.1;
+  }
+
+  .facility-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-blue);
+  }
+
+  .facility-name {
+    font-size: 0.875rem;
+    color: var(--gray-dark);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .facility-type {
+    font-size: 0.75rem;
+    color: var(--gray-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .facility-beds {
+    font-size: 0.75rem;
+    color: var(--primary-blue);
+    margin-top: 0.25rem;
+    font-weight: 600;
+  }
+
+  /* Legend */
+  .legend {
+    background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1rem;
+  }
+  .legend-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); }
+  .legend-icon { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--bg-base); }
+
+  /* Leaflet Popups Dark Mode */
+  .leaflet-popup-content-wrapper {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .leaflet-popup-tip { background: var(--bg-elevated); border: 1px solid var(--border-glass); }
+  .leaflet-popup-content { font-family: 'Inter', sans-serif; margin: 15px; min-width: 200px; }
+  .popup-title { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--primary-cyan); margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-glass); }
+  .popup-info { font-size: 0.85rem; color: var(--text-secondary); }
+  .popup-info div { margin-bottom: 0.4rem; }
+  .popup-info strong { color: var(--text-primary); font-weight: 500; display: inline-block; width: 80px; }
+
+  /* Map Controls */
+  .leaflet-control-zoom a { background: var(--bg-elevated) !important; color: var(--text-primary) !important; border: 1px solid var(--border-glass) !important; }
+  .leaflet-control-zoom a:hover { background: rgba(255,255,255,0.1) !important; }
+
+  /* Loading */
+  .loading { position: absolute; inset: 0; background: var(--bg-base); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+  .spinner { width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary-cyan); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  /* Loading spinner */
+  .loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--gray-light);
+    border-top: 3px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Animations */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: var(--transition);
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .map-section {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    .sidebar {
+      order: -1;
+      max-height: 400px;
+    }
+
+    #map {
+      height: 500px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      flex-direction: column;
+      padding: 1rem;
+      box-shadow: var(--shadow-md);
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
+
+    .nav-links.active {
+      display: flex;
+    }
+
+    .mobile-menu-toggle {
+      display: block;
+    }
+
+    .filter-buttons {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      flex: 1;
+      min-width: 120px;
+      font-size: 0.75rem;
+    }
+
+    .sidebar {
+      padding: 1rem;
+    }
+
+    .facility-list {
+      max-height: 200px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container nav-content">
+    <a href="gst-laayoune-unified.html" class="nav-logo">
+      <i class="fas fa-stethoscope" style="color: var(--primary-cyan);"></i>
+      <span>GST Laâyoune</span>
+    </a>
+    <button class="mobile-menu-toggle" style="display: none;">
+      <i class="fas fa-bars"></i>
+    </button>
+    <ul class="nav-links">
+      <li><a href="gst-laayoune-unified.html" class="nav-link">Accueil</a></li>
+      <li><a href="dg-unified.html" class="nav-link">Direction</a></li>
+      <li><a href="organigramme-unified.html" class="nav-link">Organigramme</a></li>
+      <li><a href="previsions-unified.html" class="nav-link">Prévisions</a></li>
+      <li><a href="#" class="nav-link active">Carte Interactive</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<header class="page-header">
+  <div class="container">
+    <h1>Exploration <span>Territoriale</span></h1>
+    <p>Visualisation interactive du réseau sanitaire du groupement territorial</p>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main>
+  <div class="container">
+    <div class="map-section fade-in">
+      <!-- Map Container -->
+      <div id="map">
+        <div class="loading" id="mapLoading" style="position:absolute; inset:0; z-index:2000; background:var(--bg-elevated); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div class="spinner"></div>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">Chargement de la carte...</p>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h3><i class="fas fa-filter"></i> Exploration</h3>
+
+        <div class="filter-section">
+          <div class="filter-title">Filtres Réseau</div>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-type="all">
+              <i class="fas fa-layer-group" style="width:20px; color:#94a3b8"></i> Tous les établissements
+            </button>
+            <button class="filter-btn" data-type="hr">
+              <i class="fas fa-hospital" style="width:20px; color:#f59e0b"></i> Hôpitaux Régionaux
+            </button>
+            <button class="filter-btn" data-type="hp">
+              <i class="fas fa-clinic-medical" style="width:20px; color:#0066cc"></i> Hôpitaux Provinciaux
+            </button>
+            <button class="filter-btn" data-type="cro">
+              <i class="fas fa-microscope" style="width:20px; color:#ef4444"></i> C. Régional d'Oncologie
+            </button>
+            <button class="filter-btn" data-type="csu">
+              <i class="fas fa-building" style="width:20px; color:#10b981"></i> Centres Urbains (CSU)
+            </button>
+            <button class="filter-btn" data-type="csr">
+              <i class="fas fa-tree" style="width:20px; color:#a855f7"></i> Centres Ruraux (CSR)
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-panel">
+          <div class="stat-item">
+            <span class="stat-label">Établissements filtrés</span>
+            <span class="stat-value" id="totalCount">45</span>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Liste detaillée</div>
+          <div class="facility-list" id="facilityList"></div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-title">Légende Marker</div>
+          <div class="legend-item"><div class="legend-icon" style="background:#f59e0b"></div><span>Hôpital Régional</span></div>
+          <div class="legend-item"><div class="legend-icon" style="background:#0066cc"></div><span>Hôpital Provincial</span></div>
+          <div class="legend-item"><div class="legend-icon" style="background:#ef4444"></div><span>Centre d'Oncologie</span></div>
+          <div class="legend-item"><div class="legend-icon" style="background:#10b981"></div><span>Centre Santé Urbain</span></div>
+          <div class="legend-item"><div class="legend-icon" style="background:#a855f7"></div><span>Centre Santé Rural</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Health facilities data
+const facilities = [
+  // =========================================================
+  // DONNÉES OFFICIELLES — Source: Fiches techniques 2025 + data.xls
+  // =========================================================
+
+  // === RÉSEAU HOSPITALIER (RH) ===
+  // Hôpitaux Régionaux (HR)
+  { name: "H.R. My Hassan Ben El Mehdi", type: "hr", city: "Laâyoune", lat: 27.1536, lng: -13.2033, beds: 245, specialties: "Chirurgie, Pédiatrie, Gynéco-Obstétrique, Médecine interne, Urgences", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+  { name: "H.R. Hassan II", type: "hr", city: "Laâyoune", lat: 27.1461, lng: -13.1952, beds: 127, specialties: "ORL, Dermatologie, Cardiologie, Ophtalmologie, Neurochirurgie, Gastro-entérologie", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+
+  // Centre Régional d'Oncologie (CRO)
+  { name: "Centre Régional d'Oncologie — Laâyoune", type: "cro", city: "Laâyoune", lat: 27.1602, lng: -13.2101, beds: 22, specialties: "Oncologie médicale, Radiothérapie, Médecine nucléaire — 4 spécialistes", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+
+  // Hôpitaux Provinciaux (HP)
+  { name: "H.P. Hassan II — Boujdour", type: "hp", city: "Boujdour", lat: 26.1250, lng: -14.4667, beds: 58, specialties: "Médecine générale, Gynéco-Obstétrique, Chirurgie, Ophtalmologie, ORL, Radiologie", status: "Fonctionnel", province: "Boujdour", address: "Boujdour" },
+  { name: "H.P. Es-Smara", type: "hp", city: "Es-Smara", lat: 26.7417, lng: -11.9333, beds: 84, specialties: "Médecine générale, Gynéco-Obstétrique, Chirurgie, Cardiologie, Radiologie", status: "Fonctionnel", province: "Es-Smara", address: "Es-Smara" },
+  { name: "H.P. Tarfaya", type: "hp", city: "Tarfaya", lat: 28.0275, lng: -12.9239, beds: 70, specialties: "Médecine générale, Gynéco-Obstétrique, Chirurgie générale, Cardiologie", status: "Fonctionnel", province: "Tarfaya", address: "Tarfaya" },
+
+  // Hôpital de Proximité (HPr)
+  { name: "HPr Sidi Mellouk — Laâyoune", type: "hp", city: "Laâyoune", lat: 27.1390, lng: -13.2150, beds: 0, specialties: "Soins de proximité", status: "Fonctionnel", province: "Laâyoune", address: "Sidi Mellouk, Laâyoune" },
+
+  // Structures hospitalières spécialisées
+  { name: "CRTS Laâyoune", type: "csu", city: "Laâyoune", lat: 27.1555, lng: -13.1970, beds: 0, specialties: "Centre Régional de Transfusion Sanguine — Néphrologie", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+
+  // === RÉSEAU ESSP — STRUCTURES D'APPUI ===
+  { name: "CDTMR Laâyoune", type: "csu", city: "Laâyoune", lat: 27.1520, lng: -13.2060, beds: 0, specialties: "Pneumo-phtisiologie, Maladies Respiratoires", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+
+  // === CSU (Centres de Santé Urbains) — Province Laâyoune ===
+  { name: "CSU Al Marsa", type: "csu", city: "Laâyoune", lat: 27.1400, lng: -13.1820, beds: 0, specialties: "Médecine générale, Chirurgie dentaire", status: "Fonctionnel", province: "Laâyoune", address: "Quartier Al Marsa, Laâyoune" },
+  { name: "CSU 20 Août", type: "csu", city: "Laâyoune", lat: 27.1495, lng: -13.2010, beds: 0, specialties: "Médecine générale, Médecine communautaire", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+  { name: "CSU Med Salem Ben Boukhari", type: "csu", city: "Laâyoune", lat: 27.1560, lng: -13.2045, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+  { name: "CSU Slim Ben Bachir Ben Ammar", type: "csu", city: "Laâyoune", lat: 27.1530, lng: -13.1970, beds: 0, specialties: "Médecine générale, Médecine du sport", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+  { name: "CSU Al Qods", type: "csu", city: "Laâyoune", lat: 27.1470, lng: -13.2080, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Laâyoune", address: "Quartier Al Qods, Laâyoune" },
+  { name: "CSU Al Wifak", type: "csu", city: "Laâyoune", lat: 27.1585, lng: -13.2090, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Laâyoune", address: "Quartier Al Wifak, Laâyoune" },
+  { name: "CSU 25 Mars", type: "csu", city: "Laâyoune", lat: 27.1510, lng: -13.2020, beds: 0, specialties: "Médecine du sport", status: "Fonctionnel", province: "Laâyoune", address: "Laâyoune" },
+  { name: "CSU Madina Al Jdida Al Wifaq", type: "csu", city: "Laâyoune", lat: 27.1545, lng: -13.2008, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Laâyoune", address: "Médina Nouvelle, Laâyoune" },
+  { name: "CSU Al Massira", type: "csu", city: "Laâyoune", lat: 27.1480, lng: -13.1980, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Laâyoune", address: "Quartier Al Massira, Laâyoune" },
+
+  // CSU — Province Boujdour
+  { name: "CSU Boujdour Ville", type: "csu", city: "Boujdour", lat: 26.1300, lng: -14.4700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Boujdour", address: "Centre ville, Boujdour" },
+  { name: "C. Diagnostique et Traitement MR — Boujdour", type: "csu", city: "Boujdour", lat: 26.1260, lng: -14.4650, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Boujdour", address: "Boujdour" },
+
+  // CSU — Province Es-Smara
+  { name: "CSU Es-Smara I", type: "csu", city: "Es-Smara", lat: 26.7430, lng: -11.9350, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Es-Smara", address: "Es-Smara" },
+  { name: "CSU Hay Salam — Es-Smara", type: "csu", city: "Es-Smara", lat: 26.7400, lng: -11.9310, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Es-Smara", address: "Hay Salam, Es-Smara" },
+  { name: "CSU Leguiz", type: "csu", city: "Es-Smara", lat: 26.7445, lng: -11.9380, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Es-Smara", address: "Leguiz, Es-Smara" },
+
+  // CSU — Province Tarfaya
+  { name: "CSU Tarfaya Ville", type: "csu", city: "Tarfaya", lat: 28.0265, lng: -12.9255, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Tarfaya", address: "Tarfaya" },
+  { name: "CSU Tarfaya 2", type: "csu", city: "Tarfaya", lat: 28.0290, lng: -12.9210, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Tarfaya", address: "Tarfaya" },
+
+  // === CSR (Centres de Santé Ruraux) ===
+  // Province Laâyoune
+  { name: "CSR Amchala", type: "csr", city: "Laâyoune", lat: 27.2100, lng: -13.2700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "Amchala" },
+  { name: "CSR Foum El Oued", type: "csr", city: "Laâyoune", lat: 26.9800, lng: -13.0200, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "Foum El Oued" },
+  { name: "CSR Dcheira", type: "csr", city: "Laâyoune", lat: 27.3500, lng: -13.3100, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "Dcheira" },
+  { name: "Dispensaire Rural Toujounine", type: "csr", city: "Laâyoune", lat: 27.0600, lng: -13.3700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "Toujounine" },
+  { name: "CSR El Hagounia", type: "csr", city: "Laâyoune", lat: 26.3900, lng: -14.0700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "El Hagounia" },
+  { name: "CSR Lemsayed", type: "csr", city: "Laâyoune", lat: 27.5800, lng: -13.0900, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Laâyoune", address: "Lemsayed" },
+
+  // Province Tarfaya
+  { name: "CSR La Marche Verte", type: "csr", city: "Tarfaya", lat: 27.9300, lng: -12.8500, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Tarfaya", address: "La Marche Verte" },
+  { name: "CSR Akhfennir", type: "csr", city: "Tarfaya", lat: 28.4500, lng: -12.3100, beds: 0, specialties: "Médecine générale", status: "Fonctionnel", province: "Tarfaya", address: "Akhfennir" },
+  { name: "CSR Tah", type: "csr", city: "Tarfaya", lat: 27.9700, lng: -12.7200, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Tarfaya", address: "Tah" },
+  { name: "CSR Tighert", type: "csr", city: "Tarfaya", lat: 27.8400, lng: -13.0700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Tarfaya", address: "Tighert" },
+
+  // Province Es-Smara
+  { name: "CSR Oum Dreyga", type: "csr", city: "Es-Smara", lat: 26.5500, lng: -12.2000, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Oum Dreyga" },
+  { name: "CSR Haouza", type: "csr", city: "Es-Smara", lat: 27.0200, lng: -11.2500, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Haouza" },
+  { name: "CSR Mahbas", type: "csr", city: "Es-Smara", lat: 27.2600, lng: -9.8200, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Mahbas" },
+  { name: "CSR Tifariti", type: "csr", city: "Es-Smara", lat: 26.0900, lng: -10.5700, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Tifariti" },
+  { name: "CSR Jdiriya", type: "csr", city: "Es-Smara", lat: 26.8200, lng: -12.5300, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Jdiriya" },
+  { name: "CSR Slouguia", type: "csr", city: "Es-Smara", lat: 26.6700, lng: -11.4500, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Es-Smara", address: "Slouguia" },
+
+  // Province Boujdour
+  { name: "CSR Jraifia", type: "csr", city: "Boujdour", lat: 26.0000, lng: -14.6000, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Boujdour", address: "Jraifia" },
+  { name: "CSR El Argoub", type: "csr", city: "Boujdour", lat: 25.7500, lng: -14.5000, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Boujdour", address: "El Argoub" },
+  { name: "CSR Imlily", type: "csr", city: "Boujdour", lat: 25.5000, lng: -14.4500, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Boujdour", address: "Imlily" },
+  { name: "CSR Gleibat El Foula", type: "csr", city: "Boujdour", lat: 26.2800, lng: -14.3500, beds: 0, specialties: "Soins primaires", status: "Fonctionnel", province: "Boujdour", address: "Gleibat El Foula" }
+];
+
+
+// Initialize map
+let map;
+let markers = {};
+let markerGroups = {
+  hr: L.layerGroup(),
+  hp: L.layerGroup(),
+  cro: L.layerGroup(),
+  csu: L.layerGroup(),
+  csr: L.layerGroup()
+};
+
+function initializeMap() {
+  // Hide loading
+  document.getElementById('mapLoading').style.display = 'none';
+  
+  // Create map
+  map = L.map('map').setView([27.1536, -13.2033], 7);
+
+  // Add dark tile layer (CartoDB Dark Matter)
+  const tileLayers = [
+    {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; OpenStreetMap contributors &copy; CartoDB',
+      subdomains: 'abcd'
+    }
+  ];
+
+  let tileLoaded = false;
+  
+  for (let i = 0; i < tileLayers.length; i++) {
+    try {
+      const tileLayer = L.tileLayer(tileLayers[i].url, {
+        attribution: tileLayers[i].attribution,
+        subdomains: tileLayers[i].subdomains || '',
+        maxZoom: 19,
+        errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77yQAAAABJRU5ErkJggg=='
+      });
+      
+      tileLayer.addTo(map);
+      tileLoaded = true;
+      break;
+    } catch (error) {
+      console.warn(`Tile provider ${i + 1} failed, trying next...`, error);
+      continue;
+    }
+  }
+  
+  if (!tileLoaded) {
+    console.error('All tile providers failed, showing error message');
+    document.getElementById('map').innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--gray-medium);"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>Carte indisponible. Veuillez réessayer plus tard.</div>';
+    return;
+  }
+
+  // Add marker groups to map
+  Object.values(markerGroups).forEach(group => group.addTo(map));
+
+  // Add markers
+  addMarkers();
+
+  // Update stats
+  updateStats();
+}
+
+// Create custom icon function
+function createCustomIcon(type) {
+  const colors = {
+    hr: '#f59e0b',
+    hp: '#0066cc',
+    cro: '#ef4444',
+    csu: '#10b981',
+    csr: '#a855f7'
+  };
+
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="width:16px; height:16px; border-radius:50%; background: ${colors[type]}; border: 2px solid #0f172a; box-shadow: 0 0 10px ${colors[type]}88;"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+}
+
+// Add markers
+function addMarkers() {
+  facilities.forEach(facility => {
+    const marker = L.marker([facility.lat, facility.lng], {
+      icon: createCustomIcon(facility.type)
+    });
+
+    // Create popup content
+    const popupContent = `
+      <div class="popup-title">${facility.name}</div>
+      <div class="popup-info">
+        <div><strong>Type:</strong> ${getTypeLabel(facility.type)}</div>
+        <div><strong>Ville:</strong> ${facility.city}</div>
+        ${facility.beds > 0 ? `<div><strong>Lits:</strong> ${facility.beds}</div>` : ''}
+        <div><strong>Spécialités:</strong> ${facility.specialties}</div>
+        <div><strong>Statut:</strong> ${facility.status}</div>
+        <div><strong>Téléphone:</strong> ${facility.phone}</div>
+        <div><strong>Adresse:</strong> ${facility.address}</div>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
+    marker.facility = facility;
+    
+    marker.addTo(markerGroups[facility.type]);
+    markers[facility.name] = marker;
+  });
+}
+
+// Get type label
+function getTypeLabel(type) {
+  const labels = {
+    hr: "Hôpital Régional",
+    hp: "Hôpital Provincial",
+    cro: "Centre d'Oncologie",
+    csu: "Centre de Santé Urbain",
+    csr: "Centre de Santé Rural"
+  };
+  return labels[type] || type;
+}
+
+// Filter facilities
+function filterFacilities(type) {
+  // Update button states
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+  // Show/hide marker groups
+  Object.keys(markerGroups).forEach(groupType => {
+    if (type === 'all' || groupType === type) {
+      markerGroups[groupType].addTo(map);
+    } else {
+      map.removeLayer(markerGroups[groupType]);
+    }
+  });
+
+  // Update facility list
+  updateFacilityList(type);
+  
+  // Update count
+  const filtered = type === 'all' ? facilities : facilities.filter(f => f.type === type);
+  updateStats(filtered.length);
+}
+
+// Update facility list
+function updateFacilityList(filterType = 'all') {
+  const facilityList = document.getElementById('facilityList');
+  const filteredFacilities = filterType === 'all' 
+    ? facilities 
+    : facilities.filter(f => f.type === filterType);
+
+  facilityList.innerHTML = '';
+  
+  filteredFacilities.forEach(facility => {
+    const item = document.createElement('div');
+    item.className = 'facility-item';
+    item.innerHTML = `
+      <div class="facility-name">${facility.name}</div>
+      <div class="facility-type">${getTypeLabel(facility.type)}</div>
+      ${facility.beds > 0 ? `<div class="facility-beds">${facility.beds} lits</div>` : ''}
+    `;
+    
+    item.addEventListener('click', () => {
+      map.setView([facility.lat, facility.lng], 12);
+      markers[facility.name].openPopup();
+    });
+    
+    facilityList.appendChild(item);
+  });
+}
+
+// Update statistics
+function updateStats(filteredCount) {
+  const totalCount = document.getElementById('totalCount');
+  if(totalCount) totalCount.textContent = filteredCount;
+}
+
+// Event listeners
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterFacilities(btn.dataset.type);
+  });
+});
+
+// Mobile menu toggle
+const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+const navLinks = document.querySelector('.nav-links');
+
+if (mobileMenuToggle && navLinks) {
+  mobileMenuToggle.addEventListener('click', () => {
+    navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+    navLinks.style.position = 'absolute';
+    navLinks.style.top = '100%';
+    navLinks.style.left = '0';
+    navLinks.style.right = '0';
+    navLinks.style.background = 'var(--bg-elevated)';
+    navLinks.style.flexDirection = 'column';
+    navLinks.style.padding = '1rem';
+  });
+}
+
+// Scroll animations
+function handleScroll() {
+  const elements = document.querySelectorAll('.fade-in');
+  
+  elements.forEach(element => {
+    const elementTop = element.getBoundingClientRect().top;
+    const elementBottom = element.getBoundingClientRect().bottom;
+    
+    if (elementTop < window.innerHeight && elementBottom > 0) {
+      element.classList.add('visible');
+    }
+  });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    initializeMap();
+    updateFacilityList();
+    handleScroll();
+  }, 1000); // Simulate loading time
+});
+
+window.addEventListener('scroll', handleScroll);
+
+// Add keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // Close any open popup
+    map.closePopup();
+  }
+});
+</script>
+
+</body>
+</html>
